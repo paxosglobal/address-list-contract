@@ -4,8 +4,8 @@
   "description": "Oracle Smart contract to provide allow/block list",
   "main": "index.js",
   "scripts": {
-    "test": "npx hardhar test",
-    "coverage": "npx hardhar coverage",
+    "test": "npx hardhat test",
+    "coverage": "npx hardhat coverage",
     "solhint": "solhint 'contracts/**/*.sol'"
   },
   "author": "PAXOS",

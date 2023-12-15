@@ -10,10 +10,7 @@ module.exports = {
     settings: {
       optimizer: {
         enabled: true,
-        runs: 200,
-        details: {
-          yul: true,
-        }
+        runs: 200
       },
     }
   },
@@ -25,5 +22,8 @@ module.exports = {
         mnemonic: process.env.MNUEMONIC_KEY,
       }
     }
+  },
+  gasReporter: {
+    enabled: process.env.REPORT_GAS,
   }
 };
