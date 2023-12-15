@@ -1,12 +1,12 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.17;
 
-import {Authorizable} from "./Authorizable.sol";
+import {AuthorizableAbstract} from "./AuthorizableAbstract.sol";
 
 /**
  * @title AccessRegistry: Manage a list of address to allow and block them.
  */
-contract AccessRegistryOracle is Authorizable {
+contract AccessRegistryOracleAbstract is AuthorizableAbstract {
     // DATA
     mapping(address => bool) internal allowList;
     mapping(address => bool) internal blockList;

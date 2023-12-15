@@ -6,7 +6,7 @@ import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 error ZerrorAddress();
 error NotAuthorized();
 
-contract Authorizable is Ownable {
+abstract contract AuthorizableAbstract is Ownable {
     // Mapping of address which are authorized.
     mapping(address => bool) public authorized;
 

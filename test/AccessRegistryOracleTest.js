@@ -5,11 +5,11 @@ const {
 const { expect } = require("chai");
 const { ethers } = require("hardhat");
 
-describe("AccessRegistryOracle testing", function () {
+describe("AccessRegistryOracleV1 testing", function () {
     async function deployFixture() {
         const [owner, addr1, addr2, addr3] = await ethers.getSigners();
 
-        const registryContract = await ethers.deployContract("AccessRegistryOracle");
+        const registryContract = await ethers.deployContract("AccessRegistryOracleV1");
 
         return { registryContract, owner, addr1, addr2 , addr3};
     }
