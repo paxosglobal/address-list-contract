@@ -4,7 +4,9 @@
   "description": "Oracle Smart contract to provide allow/block list",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "npx hardhar test",
+    "coverage": "npx hardhar coverage",
+    "solhint": "solhint 'contracts/**/*.sol'"
   },
   "author": "PAXOS",
   "license": "MIT",
@@ -31,6 +33,7 @@
     "dotenv": "^16.3.1",
     "ethers": "^6.9.0",
     "ganache-cli": "^6.12.2",
-    "openzeppelin-solidity": "^4.8.1"
+    "openzeppelin-solidity": "^4.8.1",
+    "solhint": "^4.0.0"
   }
 }
