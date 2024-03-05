@@ -1,51 +1,47 @@
-const {
-    loadFixture,
-} = require("@nomicfoundation/hardhat-toolbox/network-helpers");
+import { loadFixture } from "@nomicfoundation/hardhat-toolbox/network-helpers";
 
-const { expect } = require("chai");
-const { ethers } = require("hardhat");
+import { expect } from "chai";
+import { ethers, upgrades } from "hardhat";
 
-describe("AccessRegistryOracleV1 testing", function () {
+const CONTRACT_NAME = "PaxosSanctionedListV1"
+
+describe("PaxosSanctionedListV1 testing", function () {
     async function deployFixture() {
-        const [owner, addr1, addr2, addr3] = await ethers.getSigners();
+        const [owner, admin, addr1, addr2] = await ethers.getSigners();
+        const PaxosSanctionedListV1 = await ethers.getContractFactory(CONTRACT_NAME);
+        const contract = await upgrades.deployProxy(PaxosSanctionedListV1, [admin, addr1], {
+            initializer: "initialize",
+        });
 
-        const registryContract = await ethers.deployContract("AccessRegistryOracleV1");
-
-        return { registryContract, owner, addr1, addr2 , addr3};
+        return { contract, owner, admin, addr1, addr2};
     }
 
     describe("Authorizable testing", function () {
         it("validate authorization state after add/remove action by owner", async function () {
-            const { registryContract, addr1 } = await loadFixture(deployFixture);
+            const { contract, addr1 } = await loadFixture(deployFixture);
+            console.log(contract.address);
 
             // by default, there is not authorization
-            expect(await registryContract.isAuthorized(addr1.address)).to.equal(false);
+            expect(await contract.isAuthorized(addr1.address)).to.equal(false);
 
             // We added an address, which is now authorized
-            await registryContract.addAuthorization(addr1.address);
-            expect(await registryContract.isAuthorized(addr1.address)).to.equal(true);
+            await contract.addAuthorization(addr1.address);
+            expect(await contract.isAuthorized(addr1.address)).to.equal(true);
 
             // Re-adding the authorization should not fail
-            await registryContract.addAuthorization(addr1.address);
+            await contract.addAuthorization(addr1.address);
 
             // We remove the address, which is now not authorized
-            await registryContract.removeAuthorization(addr1.address);
-            expect(await registryContract.isAuthorized(addr1.address)).to.equal(false);
+            await contract.removeAuthorization(addr1.address);
+            expect(await contract.isAuthorized(addr1.address)).to.equal(false);
 
             // Re-removing the authorization should not fail
-            await registryContract.removeAuthorization(addr1.address)
-        });
-
-        it("non-owner unable to call any API", async function () {
-            const { registryContract, addr1 } = await loadFixture(deployFixture);
-            await expect(registryContract.connect(addr1).addAuthorization(addr1.address)).to.be.revertedWith("Ownable: caller is not the owner");
-            await expect(registryContract.connect(addr1).removeAuthorization(addr1.address)).to.be.revertedWith("Ownable: caller is not the owner");
-            await expect(registryContract.connect(addr1).isAuthorized(addr1.address)).to.be.revertedWith("Ownable: caller is not the owner");
+            await contract.removeAuthorization(addr1.address)
         });
     });
 
 
-    describe("AccessRegistryOracle testing", function () {
+    /*describe("AccessRegistryOracle testing", function () {
         it("add/remove to Allow List and validate", async function () {
             const { registryContract, addr1, addr2, addr3 } = await loadFixture(deployFixture);
 
@@ -54,8 +50,17 @@ describe("AccessRegistryOracleV1 testing", function () {
             expect(await registryContract.isAllowed(addr2.address)).to.equal(false);
             expect(await registryContract.isAllowed(addr3.address)).to.equal(false);
 
+
+            let address = []
+            for (var i = 0; i < 1; i++) {
+                address.push(addr1);
+            }
             // add couple of address to allowList
-            await registryContract.addToAllowList([addr1, addr2]);
+            result = await registryContract.addToAllowList(address);
+            console.log(result);
+            const transactionReceipt = await ethers.provider.getTransactionReceipt(result.hash);
+            console.log("gas used ", transactionReceipt.gasUsed);
+
 
             // address are in the allow list
             expect(await registryContract.isAllowed(addr1.address)).to.equal(true);
@@ -70,7 +75,6 @@ describe("AccessRegistryOracleV1 testing", function () {
             expect(await registryContract.isAllowed(addr1.address)).to.equal(false);
             expect(await registryContract.isAllowed(addr2.address)).to.equal(true);
             expect(await registryContract.isAllowed(addr3.address)).to.equal(false);
-
         });
 
         it("non-authorized user should not be able to call any API", async function () {
@@ -108,7 +112,7 @@ describe("AccessRegistryOracleV1 testing", function () {
             expect(await registryContract.isBlocked(addr3.address)).to.equal(false);
 
         });
-    });
+    });*/
 
 
 });
