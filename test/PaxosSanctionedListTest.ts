@@ -1,45 +1,31 @@
 import { loadFixture } from "@nomicfoundation/hardhat-toolbox/network-helpers";
 
 import { expect } from "chai";
+import { Contract } from "ethers";
 import { ethers, upgrades } from "hardhat";
 
 const CONTRACT_NAME = "PaxosSanctionedListV1"
 
 describe("PaxosSanctionedListV1 testing", function () {
     async function deployFixture() {
-        const [owner, admin, addr1, addr2] = await ethers.getSigners();
+        const [owner, admin, assetProtector, addr1, addr2] = await ethers.getSigners();
         const PaxosSanctionedListV1 = await ethers.getContractFactory(CONTRACT_NAME);
-        const contract = await upgrades.deployProxy(PaxosSanctionedListV1, [admin, addr1], {
+        let contract = await upgrades.deployProxy(PaxosSanctionedListV1, [admin.address, assetProtector.address], {
             initializer: "initialize",
         });
-
-        return { contract, owner, admin, addr1, addr2};
+        contract = (contract.connect(assetProtector) as Contract);
+        return { contract, owner, admin, assetProtector, addr1, addr2};
     }
 
-    describe("Authorizable testing", function () {
-        it("validate authorization state after add/remove action by owner", async function () {
+    describe("Basic testing", function () {
+        it("Add address", async function () {
             const { contract, addr1 } = await loadFixture(deployFixture);
-            console.log(contract.address);
 
-            // by default, there is not authorization
-            expect(await contract.isAuthorized(addr1.address)).to.equal(false);
-
-            // We added an address, which is now authorized
-            await contract.addAuthorization(addr1.address);
-            expect(await contract.isAuthorized(addr1.address)).to.equal(true);
-
-            // Re-adding the authorization should not fail
-            await contract.addAuthorization(addr1.address);
-
-            // We remove the address, which is now not authorized
-            await contract.removeAuthorization(addr1.address);
-            expect(await contract.isAuthorized(addr1.address)).to.equal(false);
-
-            // Re-removing the authorization should not fail
-            await contract.removeAuthorization(addr1.address)
+            expect((await contract.isAddrSanctioned(addr1.address))).to.equal(false);
+            await contract.sanctionAddress([addr1.address]);
+            expect((await contract.isAddrSanctioned(addr1.address))).to.equal(true);
         });
     });
-
 
     /*describe("AccessRegistryOracle testing", function () {
         it("add/remove to Allow List and validate", async function () {
