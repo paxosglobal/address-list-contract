@@ -4,9 +4,13 @@
   "description": "Oracle Smart contract to provide allow/block list",
   "main": "index.js",
   "scripts": {
-    "test": "npx hardhat test",
+    "generate-abi": "cat artifacts/contracts/PaxosSanctionedListV1.sol | jq -c .abi > contract.abi",
+    "generate-bin": "cat artifacts/contracts/PaxosSanctionedListV1.sol | jq  -r .bytecode > contract.bin",
+    "compile": "npx hardhat compile --force",
     "coverage": "npx hardhat coverage",
-    "solhint": "solhint 'contracts/**/*.sol'"
+    "flatten-impl": "npx hardhat flatten contracts/PaxosSanctionedListV1.sol > ./flattened/PaxosSanctionedListV1.sol",
+    "solhint": "solhint 'contracts/**/*.sol'",
+    "test": "npx hardhat test"
   },
   "author": "PAXOS",
   "license": "MIT",

@@ -1,10 +1,14 @@
 import { loadFixture } from "@nomicfoundation/hardhat-toolbox/network-helpers";
 
 import { expect } from "chai";
-import { Contract } from "ethers";
+import { Contract, keccak256, toUtf8Bytes } from "ethers";
 import { ethers, upgrades } from "hardhat";
 
 const CONTRACT_NAME = "PaxosSanctionedListV1"
+
+const roles = {
+    ASSET_PROTECTION_ROLE: keccak256(toUtf8Bytes("ASSET_PROTECTION_ROLE")),
+}
 
 describe("PaxosSanctionedListV1 testing", function () {
     async function deployFixture() {
@@ -25,80 +29,64 @@ describe("PaxosSanctionedListV1 testing", function () {
             await contract.sanctionAddress([addr1.address]);
             expect((await contract.isAddrSanctioned(addr1.address))).to.equal(true);
         });
+
+        it("Add multiple address", async function () {
+            const { contract, addr1, addr2 } = await loadFixture(deployFixture);
+
+            expect((await contract.isAddrSanctioned(addr1.address))).to.equal(false);
+            expect((await contract.isAddrSanctioned(addr2.address))).to.equal(false);
+            await contract.sanctionAddress([addr1.address, addr2.address]);
+            expect((await contract.isAddrSanctioned(addr1.address))).to.equal(true);
+            expect((await contract.isAddrSanctioned(addr2.address))).to.equal(true);
+        });
+
+        it("Unsanction address", async function () {
+            const { contract, addr1 } = await loadFixture(deployFixture);
+
+            await contract.sanctionAddress([addr1.address]);
+            expect((await contract.isAddrSanctioned(addr1.address))).to.equal(true);
+            await contract.unSanctionAddress([addr1.address]);
+            expect((await contract.isAddrSanctioned(addr1.address))).to.equal(false);
+        });
+
+        it("Unsanction multiple address", async function () {
+            const { contract, addr1, addr2 } = await loadFixture(deployFixture);
+
+            await contract.sanctionAddress([addr1.address, addr2.address]);
+            expect((await contract.anyAddrSanctioned([addr1.address, addr2.address]))).to.equal(true);
+            await contract.unSanctionAddress([addr1.address, addr2.address]);
+            expect((await contract.anyAddrSanctioned([addr1.address, addr2.address]))).to.equal(false);
+        });
+
+        /*it("sanction only one address", async function () {
+            const { contract, addr1, addr2 } = await loadFixture(deployFixture);
+            await contract.sanctionAddress([addr1.address]);
+            expect((await contract.anyAddrSanctioned([addr1.address, addr2.address]))).to.equal(true);
+        });*/
     });
 
-    /*describe("AccessRegistryOracle testing", function () {
-        it("add/remove to Allow List and validate", async function () {
-            const { registryContract, addr1, addr2, addr3 } = await loadFixture(deployFixture);
+    describe("Unauthorized access testing", function () {
+        it("Unauthorized access to sanctionAddress", async function () {
+            const { contract, admin,  addr1 } = await loadFixture(deployFixture);
 
-            // By default, no addresses exist.
-            expect(await registryContract.isAllowed(addr1.address)).to.equal(false);
-            expect(await registryContract.isAllowed(addr2.address)).to.equal(false);
-            expect(await registryContract.isAllowed(addr3.address)).to.equal(false);
-
-
-            let address = []
-            for (var i = 0; i < 1; i++) {
-                address.push(addr1);
-            }
-            // add couple of address to allowList
-            result = await registryContract.addToAllowList(address);
-            console.log(result);
-            const transactionReceipt = await ethers.provider.getTransactionReceipt(result.hash);
-            console.log("gas used ", transactionReceipt.gasUsed);
-
-
-            // address are in the allow list
-            expect(await registryContract.isAllowed(addr1.address)).to.equal(true);
-            expect(await registryContract.isAllowed(addr2.address)).to.equal(true);
-            expect(await registryContract.isAllowed(addr3.address)).to.equal(false);
-
-            // Re-adding the address should not fail
-            await registryContract.addToAllowList([addr1, addr2]);
-
-            //Remove a valid address and one non existent address.
-            await registryContract.removeFromAllowList([addr1, addr3]);
-            expect(await registryContract.isAllowed(addr1.address)).to.equal(false);
-            expect(await registryContract.isAllowed(addr2.address)).to.equal(true);
-            expect(await registryContract.isAllowed(addr3.address)).to.equal(false);
+            await expect((contract.connect(admin) as Contract).sanctionAddress([addr1.address])).to.be.revertedWith(
+                `AccessControl: account ${admin.address.toLowerCase()} is missing role ${
+                    roles.ASSET_PROTECTION_ROLE
+                  }`
+            );
         });
 
-        it("non-authorized user should not be able to call any API", async function () {
-            const { registryContract, addr1} = await loadFixture(deployFixture);
-            await expect(registryContract.connect(addr1).addToAllowList([addr1.address])).to.be.revertedWithCustomError(registryContract, "NotAuthorized");
-            await expect(registryContract.connect(addr1).removeFromAllowList([addr1.address])).to.be.revertedWithCustomError(registryContract, "NotAuthorized");
-            await expect(registryContract.connect(addr1).isAllowed(addr1.address)).to.be.revertedWithCustomError(registryContract, "NotAuthorized");
-            await expect(registryContract.connect(addr1).isBlocked(addr1.address)).to.be.revertedWithCustomError(registryContract, "NotAuthorized");
+        it("Unauthorized access to unSanctionAddress", async function () {
+            const { contract, admin,  addr1 } = await loadFixture(deployFixture);
 
+            await expect((contract.connect(admin) as Contract).unSanctionAddress([addr1.address])).to.be.revertedWith(
+                `AccessControl: account ${admin.address.toLowerCase()} is missing role ${
+                    roles.ASSET_PROTECTION_ROLE
+                  }`
+            );
         });
 
-        it("add/remove to Block List and validate", async function () {
-            const { registryContract, addr1, addr2, addr3 } = await loadFixture(deployFixture);
-
-            // By default, no addresses exist.
-            expect(await registryContract.isBlocked(addr1.address)).to.equal(false);
-            expect(await registryContract.isBlocked(addr2.address)).to.equal(false);
-            expect(await registryContract.isBlocked(addr3.address)).to.equal(false);
-
-            // add couple of address to blockList
-            await registryContract.addToBlockList([addr1, addr2]);
-
-            // address added are in the block list
-            expect(await registryContract.isBlocked(addr1.address)).to.equal(true);
-            expect(await registryContract.isBlocked(addr2.address)).to.equal(true);
-            expect(await registryContract.isBlocked(addr3.address)).to.equal(false);
-
-            // Re-adding the address should not fail
-            await registryContract.addToBlockList([addr1, addr2]);
-
-            //Remove a blocked address and non-existent address.
-            await registryContract.removeFromBlockList([addr1, addr3]);
-            expect(await registryContract.isBlocked(addr1.address)).to.equal(false);
-            expect(await registryContract.isBlocked(addr2.address)).to.equal(true);
-            expect(await registryContract.isBlocked(addr3.address)).to.equal(false);
-
-        });
-    });*/
+    });
 
 
 });

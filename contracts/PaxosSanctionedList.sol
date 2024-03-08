@@ -5,13 +5,25 @@ import {AccessRegistryOracleAbstract} from "./AccessRegistryOracleAbstract.sol";
 
 // PaxosSanctionedList: Provides external API to access sanctioned list.
 contract PaxosSanctionedList is AccessRegistryOracleAbstract {
-
     /**
      * @notice Is given address sanctioned.
-     * @param toAddAddresses address[] This is the list of addresses to add to addr list.
+     * @param addr address This is the list of addresses to add to addr list.
      */
     function isAddrSanctioned(address addr) external view returns (bool) {
         return inAddrList(addr);
+    }
+
+    /**
+     * @notice Is given address sanctioned.
+     * @param addresses address[] This is the list of addresses to add to addr list.
+     */
+    function anyAddrSanctioned(address[] calldata addresses) external view returns (bool) {
+        for (uint256 i = 0; i < addresses.length; i++) {
+            if (inAddrList(addresses[i])) {
+                return true;
+            }
+        }
+        return false;
     }
 
     /**
@@ -22,7 +34,7 @@ contract PaxosSanctionedList is AccessRegistryOracleAbstract {
         addToAddrList(addresses);
     }
 
-.    /**
+    /**
      * @notice Remove address from sanctione list.
      * @param addresses address[] This is the list of addresses to be removed from sanctioned list.
      */
