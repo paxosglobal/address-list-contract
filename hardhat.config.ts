@@ -30,13 +30,10 @@ const config: HardhatUserConfig = {
     sepolia: {
       url: `https://sepolia.infura.io/v3/${INFURA_API_KEY}`,
       ...(PRIVATE_KEY ? { accounts: [PRIVATE_KEY] } : {}),
-      ...(MNUEMONIC_KEY? { accounts: {
-        mnemonic: MNUEMONIC_KEY,
-        path: "m/44'/60'/0'/0",
-        initialIndex: 0,
-        count: 1,
-        passphrase: "harshashah12345",
-      }}: {}),
+    },
+    polygon: {
+      url: "https://polygon-mainnet.infura.io/v3/" + INFURA_API_KEY,
+      ...(PRIVATE_KEY ? { accounts: [PRIVATE_KEY] } : {}),
     },
   },
   gasReporter: {
