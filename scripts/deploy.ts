@@ -15,8 +15,7 @@ async function main() {
   console.log('Account balance: %s', ethers.formatEther(balance));
   
   console.log("\nDeploying the contract...")
-  //const contractFactory = await ethers.getContractFactory('PaxosSanctionedListV1');
-  const contractFactory = await ethers.getContractFactory('HshahSanctionedListV1');
+  const contractFactory = await ethers.getContractFactory('PaxosSanctionedListV1');
 
   const contract = await upgrades.deployProxy(contractFactory, initializerArgs, {
     initializer: 'initialize',
