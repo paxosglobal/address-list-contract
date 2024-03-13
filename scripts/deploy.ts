@@ -3,6 +3,8 @@ const { ethers, upgrades } = require("hardhat");
 const { ADMIN_ADDRESS, ASSET_PROTECTOR } = process.env;
 
 const initializerArgs = [
+  "Sanctioned-List",
+  "Address Sanctioned by USDX",
   ADMIN_ADDRESS,
   ASSET_PROTECTOR
 ]

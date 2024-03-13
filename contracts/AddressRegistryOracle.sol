@@ -3,14 +3,17 @@ pragma solidity 0.8.17;
 
 import {AccessControlDefaultAdminRulesUpgradeable} from "@openzeppelin/contracts-upgradeable/access/AccessControlDefaultAdminRulesUpgradeable.sol";
 import {UUPSUpgradeable} from "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
-
+import {IAddressRegistryOracle} from "./IAddressRegistryOracle.sol";
 /**
- * @title AccessRegistryOracleAbstract: Manage a list of address to allow and block them.
+ * @title AddressRegistryOracle: Manage a list of address.
  */
-abstract contract AccessRegistryOracleAbstract is AccessControlDefaultAdminRulesUpgradeable, UUPSUpgradeable {
+contract AddressRegistryOracle is IAddressRegistryOracle, AccessControlDefaultAdminRulesUpgradeable, UUPSUpgradeable {
     // DATA
+    string public name;
+    string public description;
+
     mapping(address => bool) internal addrList;
-    uint256[24] private __gap_AccessRegistryOracleAbstract; // solhint-disable-line var-name-mixedcase
+    uint256[24] private __gap_AddressRegistryOracle; // solhint-disable-line var-name-mixedcase
     // DATA ENDS
 
     // keccak256("ASSET_PROTECTION_ROLE")
@@ -26,9 +29,14 @@ abstract contract AccessRegistryOracleAbstract is AccessControlDefaultAdminRules
      * @param assetProtector address of the asset protector
      */
     function initialize(
+        string memory name_,
+        string memory description_,
         address admin,
         address assetProtector
     ) external initializer {
+        name = name_;
+        description = description_;
+
         __AccessControlDefaultAdminRules_init(3 hours, admin);
         __UUPSUpgradeable_init();
 
@@ -49,7 +57,7 @@ abstract contract AccessRegistryOracleAbstract is AccessControlDefaultAdminRules
      */
     function addToAddrList(
         address[] calldata toAddAddresses
-    ) internal onlyRole(ASSET_PROTECTION_ROLE) {
+    ) external onlyRole(ASSET_PROTECTION_ROLE) {
         for (uint i = 0; i < toAddAddresses.length; i++) {
             addrList[toAddAddresses[i]] = true;
             emit ModifiedAddrList(toAddAddresses[i], "Add");
@@ -62,7 +70,7 @@ abstract contract AccessRegistryOracleAbstract is AccessControlDefaultAdminRules
      */
     function removeFromAddrList(
         address[] calldata toRemoveAddresses
-    ) internal onlyRole(ASSET_PROTECTION_ROLE) {
+    ) external onlyRole(ASSET_PROTECTION_ROLE) {
         for (uint i = 0; i < toRemoveAddresses.length; i++) {
             delete addrList[toRemoveAddresses[i]];
             emit ModifiedAddrList(toRemoveAddresses[i], "Remove");
@@ -76,8 +84,21 @@ abstract contract AccessRegistryOracleAbstract is AccessControlDefaultAdminRules
      */
     function inAddrList(
         address addr
-    ) internal view returns (bool) {
+    ) public view returns (bool) {
         return addrList[addr];
+    }
+
+    /**
+     * @notice Are any given address in list.
+     * @param addresses address[] This is the list of addresses to check if any of them is part of list.
+     */
+    function anyAddrInList(address[] calldata addresses) external view returns (bool) {
+        for (uint256 i = 0; i < addresses.length; i++) {
+            if (inAddrList(addresses[i])) {
+                return true;
+            }
+        }
+        return false;
     }
 
 }

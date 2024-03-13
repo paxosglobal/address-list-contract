@@ -31,8 +31,12 @@ const config: HardhatUserConfig = {
       url: `https://sepolia.infura.io/v3/${INFURA_API_KEY}`,
       ...(PRIVATE_KEY ? { accounts: [PRIVATE_KEY] } : {}),
     },
-    polygon: {
+    polygonMain: {
       url: "https://polygon-mainnet.infura.io/v3/" + INFURA_API_KEY,
+      ...(PRIVATE_KEY ? { accounts: [PRIVATE_KEY] } : {}),
+    },
+    polygonTest: {
+      url: "https://polygon-mumbai.infura.io/v3/" + INFURA_API_KEY,
       ...(PRIVATE_KEY ? { accounts: [PRIVATE_KEY] } : {}),
     },
   },
