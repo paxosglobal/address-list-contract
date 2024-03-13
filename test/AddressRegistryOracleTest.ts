@@ -49,13 +49,28 @@ describe("AddressRegistryOracleV1 testing", function () {
             expect((await contract.inAddrList(addr1.address))).to.equal(false);
         });
 
-        it("remove multiple address", async function () {
+        it("remove all address", async function () {
             const { contract, addr1, addr2 } = await loadFixture(deployFixture);
+            await contract.addToAddrList([addr1.address, addr2.address]);
+            await contract.removeFromAddrList([addr1.address, addr2.address]);
+            expect((await contract.inAddrList(addr1.address))).to.equal(false);
+            expect((await contract.inAddrList(addr2.address))).to.equal(false);
+        });
 
+        it("Check if none of the addr is part of list", async function () {
+            const { contract, addr1, addr2 } = await loadFixture(deployFixture);
             await contract.addToAddrList([addr1.address, addr2.address]);
             expect((await contract.anyAddrInList([addr1.address, addr2.address]))).to.equal(true);
             await contract.removeFromAddrList([addr1.address, addr2.address]);
             expect((await contract.anyAddrInList([addr1.address, addr2.address]))).to.equal(false);
+        });
+
+        it("Check if one of the addr is part of list", async function () {
+            const { contract, addr1, addr2 } = await loadFixture(deployFixture);
+            await contract.addToAddrList([addr1.address, addr2.address]);
+            expect((await contract.anyAddrInList([addr1.address, addr2.address]))).to.equal(true);
+            await contract.removeFromAddrList([addr2.address]);
+            expect((await contract.anyAddrInList([addr1.address, addr2.address]))).to.equal(true);
         });
     });
 
