@@ -1,8 +1,9 @@
 import { loadFixture } from "@nomicfoundation/hardhat-toolbox/network-helpers";
 
 import { expect } from "chai";
-import { Contract, keccak256, toUtf8Bytes } from "ethers";
+import { Contract, keccak256, toUtf8Bytes, ZeroAddress } from "ethers";
 import { ethers, upgrades } from "hardhat";
+import { ZeroHash } from "ethers";
 
 const CONTRACT_NAME = "AddressRegistryOracleV1"
 
@@ -21,13 +22,23 @@ describe("AddressRegistryOracleV1 testing", function () {
         return { contract, owner, admin, assetProtector, addr1, addr2};
     }
 
-    describe("Add/Remove testing", function () {
+    describe("Generic testing", function () {
         it("validate name and description", async function () {
             const { contract } = await loadFixture(deployFixture);
             expect((await contract.name())).to.equal("test-name");
             expect((await contract.description())).to.equal("test-description");
         });
 
+        it("re-initialize should not work", async function () {
+            const { contract, admin, assetProtector } = await loadFixture(deployFixture);
+            await expect(contract.initialize("new-name", "new-description", admin.address, assetProtector.address)).to.be.reverted;
+            expect((await contract.name())).to.equal("test-name");
+            expect((await contract.description())).to.equal("test-description");
+        });
+
+    });
+
+    describe("Add/Remove testing", function () {
         it("Add address", async function () {
             const { contract, addr1 } = await loadFixture(deployFixture);
 
@@ -103,5 +114,24 @@ describe("AddressRegistryOracleV1 testing", function () {
 
     });
 
-
+    describe("upgrade testing", function () {
+        it("can upgrade with admin role", async () => {
+            const { contract, admin} = await loadFixture(deployFixture);
+            const newContract = await ethers.deployContract(CONTRACT_NAME);
+    
+            await expect((contract.connect(admin) as Contract).upgradeTo(newContract)).to.not.be.reverted;
+        });
+    
+        it("cannot upgrade without admin role", async () => {
+            const { contract, addr1 } = await loadFixture(deployFixture);
+    
+          await expect(
+            (contract.connect(addr1) as Contract).upgradeTo(ZeroAddress)
+          ).to.be.revertedWith(
+            `AccessControl: account ${addr1.address.toLowerCase()} is missing role ${
+              ZeroHash
+            }`
+          );
+        });
+    });
 });
