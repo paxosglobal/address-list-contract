@@ -14,7 +14,7 @@ describe("AddressRegistryOracleV1 testing", function () {
     async function deployFixture() {
         const [owner, admin, assetProtector, addr1, addr2] = await ethers.getSigners();
         const AddressRegistryOracleV1 = await ethers.getContractFactory(CONTRACT_NAME);
-        let contract = await upgrades.deployProxy(AddressRegistryOracleV1, ["test-name", "test-decription", admin.address, assetProtector.address], {
+        let contract = await upgrades.deployProxy(AddressRegistryOracleV1, ["test-name", "test-description", admin.address, assetProtector.address], {
             initializer: "initialize",
         });
         contract = (contract.connect(assetProtector) as Contract);
@@ -22,6 +22,12 @@ describe("AddressRegistryOracleV1 testing", function () {
     }
 
     describe("Add/Remove testing", function () {
+        it("validate name and description", async function () {
+            const { contract } = await loadFixture(deployFixture);
+            expect((await contract.name())).to.equal("test-name");
+            expect((await contract.description())).to.equal("test-description");
+        });
+
         it("Add address", async function () {
             const { contract, addr1 } = await loadFixture(deployFixture);
 
