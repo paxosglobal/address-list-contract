@@ -1,10 +1,10 @@
 const { ethers, upgrades } = require("hardhat");
 
-const { ADMIN_ADDRESS, ASSET_PROTECTOR } = process.env;
+const { ADMIN_ADDRESS, ASSET_PROTECTOR, NAME, DESCRIPTION } = process.env;
 
 const initializerArgs = [
-  "Sanctioned-List",
-  "Address Sanctioned by USDX",
+  NAME,
+  DESCRIPTION,
   ADMIN_ADDRESS,
   ASSET_PROTECTOR
 ]
@@ -17,7 +17,7 @@ async function main() {
   console.log('Account balance: %s', ethers.formatEther(balance));
   
   console.log("\nDeploying the contract...")
-  const contractFactory = await ethers.getContractFactory('PaxosSanctionedListV1');
+  const contractFactory = await ethers.getContractFactory('AddressListV1');
 
   const contract = await upgrades.deployProxy(contractFactory, initializerArgs, {
     initializer: 'initialize',

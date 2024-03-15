@@ -3,28 +3,44 @@ pragma solidity 0.8.17;
 
 import {AccessControlDefaultAdminRulesUpgradeable} from "@openzeppelin/contracts-upgradeable/access/AccessControlDefaultAdminRulesUpgradeable.sol";
 import {UUPSUpgradeable} from "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
-import {IAddressRegistryOracle} from "./IAddressRegistryOracle.sol";
+import {IAddressList} from "./IAddressList.sol";
 /**
- * @title AddressRegistryOracle: Manage a list of address.
+ * @title AddressList: Manage a list of addresses.
  */
-contract AddressRegistryOracle is IAddressRegistryOracle, AccessControlDefaultAdminRulesUpgradeable, UUPSUpgradeable {
+contract AddressList is IAddressList, AccessControlDefaultAdminRulesUpgradeable, UUPSUpgradeable {
     // DATA
+    // Name of the contract.
     string public name;
+    // Contract usage details.
     string public description;
-
+    // Mapping of address to membership status.
     mapping(address => bool) internal addrList;
-    uint256[24] private __gap_AddressRegistryOracle; // solhint-disable-line var-name-mixedcase
+    // Storage GAP
+    uint256[23] private __gap_AddressList; // solhint-disable-line var-name-mixedcase
     // DATA ENDS
 
     // keccak256("ASSET_PROTECTION_ROLE")
     bytes32 public constant ASSET_PROTECTION_ROLE = 0xe3e4f9d7569515307c0cdec302af069a93c9e33f325269bac70e6e22465a9796;
 
     // Events
-    event ModifiedAddrList(address indexed _addr, string _action);
+    event AddToAddrList(address indexed _addr);
+    event RemoveFromAddrList(address indexed _addr);
+
+    // Errors
+    error ZeroAddress();
+    error InvalidName();
+    error InvalidDescription();
+
+    /// @custom:oz-upgrades-unsafe-allow constructor
+    constructor() {
+        _disableInitializers();
+    }
 
     /**
      * @notice Initializes the contract
      * @dev Called on deployment, only can be called once.
+     * @param name_ name of contract
+     * @param description_ description of the contract
      * @param admin address of the default admin
      * @param assetProtector address of the asset protector
      */
@@ -34,8 +50,24 @@ contract AddressRegistryOracle is IAddressRegistryOracle, AccessControlDefaultAd
         address admin,
         address assetProtector
     ) external initializer {
+
+        // admin role is checked by OZ's AccessControlDefaultAdminRules
+        if (assetProtector == address(0)) {
+            revert ZeroAddress();
+        }
+
+        if (bytes(name_).length == 0) {
+            revert InvalidName();
+        }
+        if (bytes(description_).length == 0) {
+            revert InvalidDescription();
+        }
+
+
         name = name_;
         description = description_;
+
+
 
         __AccessControlDefaultAdminRules_init(3 hours, admin);
         __UUPSUpgradeable_init();
@@ -44,23 +76,16 @@ contract AddressRegistryOracle is IAddressRegistryOracle, AccessControlDefaultAd
     }
 
     /**
-     * @dev required by the OZ UUPS module to authorize an upgrade 
-     * of the contract. Restricted to DEFAULT_ADMIN_ROLE.
-     */
-    function _authorizeUpgrade(
-        address
-    ) internal override onlyRole(DEFAULT_ADMIN_ROLE) {} // solhint-disable-line no-empty-blocks
-
-    /**
      * @notice Add to addr list.
      * @param toAddAddresses address[] This is the list of addresses to add to addr list.
      */
     function addToAddrList(
         address[] calldata toAddAddresses
     ) external onlyRole(ASSET_PROTECTION_ROLE) {
-        for (uint i = 0; i < toAddAddresses.length; i++) {
+        for (uint i = 0; i < toAddAddresses.length;) {
             addrList[toAddAddresses[i]] = true;
-            emit ModifiedAddrList(toAddAddresses[i], "Add");
+            emit AddToAddrList(toAddAddresses[i]);
+            unchecked { ++i; }
         }
     }
 
@@ -71,9 +96,10 @@ contract AddressRegistryOracle is IAddressRegistryOracle, AccessControlDefaultAd
     function removeFromAddrList(
         address[] calldata toRemoveAddresses
     ) external onlyRole(ASSET_PROTECTION_ROLE) {
-        for (uint i = 0; i < toRemoveAddresses.length; i++) {
+        for (uint i = 0; i < toRemoveAddresses.length;) {
             delete addrList[toRemoveAddresses[i]];
-            emit ModifiedAddrList(toRemoveAddresses[i], "Remove");
+            emit RemoveFromAddrList(toRemoveAddresses[i]);
+            unchecked { ++i; }
         }
     }
 
@@ -93,12 +119,21 @@ contract AddressRegistryOracle is IAddressRegistryOracle, AccessControlDefaultAd
      * @param addresses address[] This is the list of addresses to check if any of them is part of list.
      */
     function anyAddrInList(address[] calldata addresses) external view returns (bool) {
-        for (uint256 i = 0; i < addresses.length; i++) {
+        for (uint256 i = 0; i < addresses.length;) {
             if (inAddrList(addresses[i])) {
                 return true;
             }
+            unchecked { ++i; }
         }
         return false;
     }
+
+    /**
+     * @dev required by the OZ UUPS module to authorize an upgrade 
+     * of the contract. Restricted to DEFAULT_ADMIN_ROLE.
+     */
+    function _authorizeUpgrade(
+        address
+    ) internal override onlyRole(DEFAULT_ADMIN_ROLE) {} // solhint-disable-line no-empty-blocks
 
 }

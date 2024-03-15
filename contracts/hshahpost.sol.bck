@@ -1,0 +1,9 @@
+// SPDX-License-Identifier: MIT
+pragma solidity 0.8.17;
+
+import {AddressListV1} from "./AddressListV1.sol";
+
+
+contract HshahSanctionedListV1 is AddressListV1 {
+}
+

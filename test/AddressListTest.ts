@@ -1,39 +1,76 @@
 import { loadFixture } from "@nomicfoundation/hardhat-toolbox/network-helpers";
 
 import { expect } from "chai";
-import { Contract, keccak256, toUtf8Bytes, ZeroAddress } from "ethers";
+import { Contract, keccak256, toUtf8Bytes, ZeroAddress, ZeroHash } from "ethers";
 import { ethers, upgrades } from "hardhat";
-import { ZeroHash } from "ethers";
 
-const CONTRACT_NAME = "AddressRegistryOracleV1"
+const CONTRACT_NAME = "AddressListV1"
 
 const roles = {
     ASSET_PROTECTION_ROLE: keccak256(toUtf8Bytes("ASSET_PROTECTION_ROLE")),
 }
 
-describe("AddressRegistryOracleV1 testing", function () {
+describe("AddressListV1 testing", function () {
     async function deployFixture() {
         const [owner, admin, assetProtector, addr1, addr2] = await ethers.getSigners();
-        const AddressRegistryOracleV1 = await ethers.getContractFactory(CONTRACT_NAME);
-        let contract = await upgrades.deployProxy(AddressRegistryOracleV1, ["test-name", "test-description", admin.address, assetProtector.address], {
+        const AddressListV1 = await ethers.getContractFactory(CONTRACT_NAME);
+        let contract = await upgrades.deployProxy(AddressListV1, ["test-name", "test-description", admin.address, assetProtector.address], {
             initializer: "initialize",
         });
         contract = (contract.connect(assetProtector) as Contract);
         return { contract, owner, admin, assetProtector, addr1, addr2};
     }
 
-    describe("Generic testing", function () {
+    describe("Initialization testing", function () {
         it("validate name and description", async function () {
             const { contract } = await loadFixture(deployFixture);
+
             expect((await contract.name())).to.equal("test-name");
             expect((await contract.description())).to.equal("test-description");
         });
 
         it("re-initialize should not work", async function () {
             const { contract, admin, assetProtector } = await loadFixture(deployFixture);
-            await expect(contract.initialize("new-name", "new-description", admin.address, assetProtector.address)).to.be.reverted;
-            expect((await contract.name())).to.equal("test-name");
-            expect((await contract.description())).to.equal("test-description");
+
+            await expect(contract.initialize("new-name", "new-description", admin.address, assetProtector.address)).to.be.revertedWith("Initializable: contract is already initialized");
+        });
+
+        it("zero address as asset protection", async function () {
+            const [admin] = await ethers.getSigners();
+
+            let initializerArgs = ["test-name", "test-description", admin.address, ZeroAddress];
+            const AddressListV1 = await ethers.getContractFactory(CONTRACT_NAME);
+            await expect(upgrades.deployProxy(AddressListV1, initializerArgs, {
+                initializer: "initialize",
+            })).to.be.revertedWithCustomError(AddressListV1, "ZeroAddress");
+        });
+
+        it("zero address as admin protection", async function () {
+            const [assetProtector] = await ethers.getSigners();
+
+            let initializerArgs = ["test-name", "test-description", ZeroAddress, assetProtector.address];
+            const AddressListV1 = await ethers.getContractFactory(CONTRACT_NAME);
+            await expect(upgrades.deployProxy(AddressListV1, initializerArgs, {
+                initializer: "initialize",
+            })).to.be.revertedWith("AccessControl: 0 default admin");
+        });
+
+        it("invalid name argument for initialize ", async function () {
+            const [assetProtector] = await ethers.getSigners();
+
+            const AddressListV1 = await ethers.getContractFactory(CONTRACT_NAME);
+            await expect(upgrades.deployProxy(AddressListV1, ["", "test-description", ZeroAddress, assetProtector.address], {
+                initializer: "initialize",
+            })).to.be.revertedWithCustomError(AddressListV1, "InvalidName");
+        });
+
+        it("invalid description argument for initialize ", async function () {
+            const [assetProtector] = await ethers.getSigners();
+
+            const AddressListV1 = await ethers.getContractFactory(CONTRACT_NAME);
+            await expect(upgrades.deployProxy(AddressListV1, ["test-name", "", ZeroAddress, assetProtector.address], {
+                initializer: "initialize",
+            })).to.be.revertedWithCustomError(AddressListV1, "InvalidDescription");
         });
 
     });
@@ -68,6 +105,7 @@ describe("AddressRegistryOracleV1 testing", function () {
 
         it("remove all address", async function () {
             const { contract, addr1, addr2 } = await loadFixture(deployFixture);
+
             await contract.addToAddrList([addr1.address, addr2.address]);
             await contract.removeFromAddrList([addr1.address, addr2.address]);
             expect((await contract.inAddrList(addr1.address))).to.equal(false);
@@ -76,6 +114,7 @@ describe("AddressRegistryOracleV1 testing", function () {
 
         it("Check if none of the addr is part of list", async function () {
             const { contract, addr1, addr2 } = await loadFixture(deployFixture);
+
             await contract.addToAddrList([addr1.address, addr2.address]);
             expect((await contract.anyAddrInList([addr1.address, addr2.address]))).to.equal(true);
             await contract.removeFromAddrList([addr1.address, addr2.address]);
@@ -84,6 +123,7 @@ describe("AddressRegistryOracleV1 testing", function () {
 
         it("Check if one of the addr is part of list", async function () {
             const { contract, addr1, addr2 } = await loadFixture(deployFixture);
+
             await contract.addToAddrList([addr1.address, addr2.address]);
             expect((await contract.anyAddrInList([addr1.address, addr2.address]))).to.equal(true);
             await contract.removeFromAddrList([addr2.address]);
@@ -93,7 +133,7 @@ describe("AddressRegistryOracleV1 testing", function () {
 
     describe("Unauthorized access testing", function () {
         it("Unauthorized access to addToAddrList", async function () {
-            const { contract, admin,  addr1 } = await loadFixture(deployFixture);
+            const { contract, admin, addr1 } = await loadFixture(deployFixture);
 
             await expect((contract.connect(admin) as Contract).addToAddrList([addr1.address])).to.be.revertedWith(
                 `AccessControl: account ${admin.address.toLowerCase()} is missing role ${
@@ -103,7 +143,7 @@ describe("AddressRegistryOracleV1 testing", function () {
         });
 
         it("Unauthorized access to removeFromAddrList", async function () {
-            const { contract, admin,  addr1 } = await loadFixture(deployFixture);
+            const { contract, admin, addr1 } = await loadFixture(deployFixture);
 
             await expect((contract.connect(admin) as Contract).removeFromAddrList([addr1.address])).to.be.revertedWith(
                 `AccessControl: account ${admin.address.toLowerCase()} is missing role ${
@@ -116,20 +156,20 @@ describe("AddressRegistryOracleV1 testing", function () {
 
     describe("upgrade testing", function () {
         it("can upgrade with admin role", async () => {
-            const { contract, admin} = await loadFixture(deployFixture);
+            const { contract, admin } = await loadFixture(deployFixture);
             const newContract = await ethers.deployContract(CONTRACT_NAME);
-    
+
             await expect((contract.connect(admin) as Contract).upgradeTo(newContract)).to.not.be.reverted;
         });
     
         it("cannot upgrade without admin role", async () => {
             const { contract, addr1 } = await loadFixture(deployFixture);
     
-          await expect(
-            (contract.connect(addr1) as Contract).upgradeTo(ZeroAddress)
-          ).to.be.revertedWith(
-            `AccessControl: account ${addr1.address.toLowerCase()} is missing role ${
-              ZeroHash
+            await expect(
+                (contract.connect(addr1) as Contract).upgradeTo(ZeroAddress)
+            ).to.be.revertedWith(
+                `AccessControl: account ${addr1.address.toLowerCase()} is missing role ${
+                ZeroHash
             }`
           );
         });

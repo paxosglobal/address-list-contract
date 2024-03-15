@@ -12,7 +12,7 @@ dotenv.config();
 const {
   PRIVATE_KEY,
   INFURA_API_KEY,
-  MNUEMONIC_KEY
+  ETHERSCAN_API_KEY
 } = process.env;
 
 const config: HardhatUserConfig = {
@@ -27,22 +27,29 @@ const config: HardhatUserConfig = {
   },
   defaultNetwork: 'hardhat',
   networks: {
-    sepolia: {
-      url: `https://sepolia.infura.io/v3/${INFURA_API_KEY}`,
+    ethSepolia: {
+      url: "https://sepolia.infura.io/v3/" + INFURA_API_KEY,
       ...(PRIVATE_KEY ? { accounts: [PRIVATE_KEY] } : {}),
     },
     polygonMain: {
       url: "https://polygon-mainnet.infura.io/v3/" + INFURA_API_KEY,
       ...(PRIVATE_KEY ? { accounts: [PRIVATE_KEY] } : {}),
     },
-    polygonTest: {
+    polygonMumbai: {
       url: "https://polygon-mumbai.infura.io/v3/" + INFURA_API_KEY,
+      ...(PRIVATE_KEY ? { accounts: [PRIVATE_KEY] } : {}),
+    },
+    polygonAmoy: {
+      url: "https://amoy-mumbai.infura.io/v3/" + INFURA_API_KEY,
       ...(PRIVATE_KEY ? { accounts: [PRIVATE_KEY] } : {}),
     },
   },
   gasReporter: {
     enabled: (process.env.GAS_REPORTER) ? true : false
-  }
+  },
+  etherscan: {
+    apiKey: ETHERSCAN_API_KEY,
+  },
 };
 
 export default config;
