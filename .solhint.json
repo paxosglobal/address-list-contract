@@ -1,0 +1,17 @@
+{
+  "extends": "solhint:recommended",
+  "rules": {
+    "custom-errors": "off",
+    "explicit-types": "off",
+    "const-name-snakecase":"off",
+    "reason-string": "off",
+    "no-global-import":"off",
+    "contract-name-camelcase": "off",
+    "no-empty-blocks": "off",
+    "func-visibility": ["off"],
+    "no-inline-assembly": "off",
+    "not-rely-on-time": "off",
+    "reason-string": ["warn",{"maxLength": 128}],
+    "var-name-mixedcase": "off"
+  }
+}
