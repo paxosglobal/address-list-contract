@@ -12,15 +12,15 @@ const roles = {
 
 describe("AddressListV1 testing", function () {
     async function deployFixture() {
-        const [owner, admin, assetProtector, addr1, addr2] = await ethers.getSigners();
+        const [owner, admin, addrListModifier, addr1, addr2] = await ethers.getSigners();
         const AddressListV1 = await ethers.getContractFactory(CONTRACT_NAME);
 
-        let contract = await upgrades.deployProxy(AddressListV1, ["test-name", "test-description", admin.address, assetProtector.address], {
+        let contract = await upgrades.deployProxy(AddressListV1, ["test-name", "test-description", admin.address, addrListModifier.address], {
             initializer: "initialize",
         });
 
-        contract = (contract.connect(assetProtector) as Contract);
-        return { contract, owner, admin, assetProtector, addr1, addr2};
+        contract = (contract.connect(addrListModifier) as Contract);
+        return { contract, owner, admin, addrListModifier, addr1, addr2};
     }
 
     describe("Initialization testing", function () {
@@ -31,23 +31,23 @@ describe("AddressListV1 testing", function () {
             expect(await contract.description()).to.equal("test-description");
         });
 
-        it("Update name and description", async function () {
+        it("update name and description", async function () {
             const { contract, admin } = await loadFixture(deployFixture);
             const newName = "new-name";
             const newDescription = "new-description";
 
-            expect(await (contract.connect(admin) as Contract).updateContractDetails(newName, newDescription)).to.not.be.reverted;
+            expect(await (contract.connect(admin) as Contract).updateContractDetails(newName, newDescription)).to.emit(contract, "UpdateContractDetailsSet");
             expect(await contract.name()).to.equal(newName);
             expect(await contract.description()).to.equal(newDescription);
         });
 
         it("re-initialize should not work", async function () {
-            const { contract, admin, assetProtector } = await loadFixture(deployFixture);
+            const { contract, admin, addrListModifier } = await loadFixture(deployFixture);
 
-            await expect(contract.initialize("new-name", "new-description", admin.address, assetProtector.address)).to.be.revertedWith("Initializable: contract is already initialized");
+            await expect(contract.initialize("new-name", "new-description", admin.address, addrListModifier.address)).to.be.revertedWith("Initializable: contract is already initialized");
         });
 
-        it("zero address as asset protection", async function () {
+        it("zero address as addr list updater", async function () {
             const [admin] = await ethers.getSigners();
             const AddressListV1 = await ethers.getContractFactory(CONTRACT_NAME);
 
@@ -59,10 +59,10 @@ describe("AddressListV1 testing", function () {
         });
 
         it("zero address as admin protection", async function () {
-            const [assetProtector] = await ethers.getSigners();
+            const [addrListModifier] = await ethers.getSigners();
             const AddressListV1 = await ethers.getContractFactory(CONTRACT_NAME);
 
-            let initializerArgs = ["test-name", "test-description", ZeroAddress, assetProtector.address];
+            let initializerArgs = ["test-name", "test-description", ZeroAddress, addrListModifier.address];
             
             await expect(upgrades.deployProxy(AddressListV1, initializerArgs, {
                 initializer: "initialize",
@@ -70,19 +70,19 @@ describe("AddressListV1 testing", function () {
         });
 
         it("invalid name argument for initialize ", async function () {
-            const [assetProtector] = await ethers.getSigners();
+            const [addrListModifier] = await ethers.getSigners();
             const AddressListV1 = await ethers.getContractFactory(CONTRACT_NAME);
 
-            await expect(upgrades.deployProxy(AddressListV1, ["", "test-description", ZeroAddress, assetProtector.address], {
+            await expect(upgrades.deployProxy(AddressListV1, ["", "test-description", ZeroAddress, addrListModifier.address], {
                 initializer: "initialize",
             })).to.be.revertedWithCustomError(AddressListV1, "InvalidName");
         });
 
         it("invalid description argument for initialize ", async function () {
-            const [assetProtector] = await ethers.getSigners();
+            const [addrListModifier] = await ethers.getSigners();
             const AddressListV1 = await ethers.getContractFactory(CONTRACT_NAME);
 
-            await expect(upgrades.deployProxy(AddressListV1, ["test-name", "", ZeroAddress, assetProtector.address], {
+            await expect(upgrades.deployProxy(AddressListV1, ["test-name", "", ZeroAddress, addrListModifier.address], {
                 initializer: "initialize",
             })).to.be.revertedWithCustomError(AddressListV1, "InvalidDescription");
         });
@@ -94,7 +94,8 @@ describe("AddressListV1 testing", function () {
             const { contract, addr1 } = await loadFixture(deployFixture);
 
             expect((await contract.inAddrList(addr1.address))).to.equal(false);
-            await contract.addToAddrList([addr1.address]);
+            expect(await contract.addToAddrList([addr1.address]))
+                .to.emit(contract, "AddToAddrList").withArgs(addr1.address);
             expect((await contract.inAddrList(addr1.address))).to.equal(true);
         });
 
@@ -103,7 +104,9 @@ describe("AddressListV1 testing", function () {
 
             expect((await contract.inAddrList(addr1.address))).to.equal(false);
             expect((await contract.inAddrList(addr2.address))).to.equal(false);
-            await contract.addToAddrList([addr1.address, addr2.address]);
+            expect(await contract.addToAddrList([addr1.address, addr2.address]))
+                .to.emit(contract, "AddToAddrList").withArgs(addr1.address)
+                .to.emit(contract, "AddToAddrList").withArgs(addr2.address);
             expect((await contract.inAddrList(addr1.address))).to.equal(true);
             expect((await contract.inAddrList(addr2.address))).to.equal(true);
         });
@@ -113,7 +116,8 @@ describe("AddressListV1 testing", function () {
 
             await contract.addToAddrList([addr1.address]);
             expect((await contract.inAddrList(addr1.address))).to.equal(true);
-            await contract.removeFromAddrList([addr1.address]);
+            expect(await contract.removeFromAddrList([addr1.address]))
+                .to.emit(contract, "RemoveFromAddrList").withArgs(addr1.address);
             expect((await contract.inAddrList(addr1.address))).to.equal(false);
         });
 
@@ -121,7 +125,9 @@ describe("AddressListV1 testing", function () {
             const { contract, addr1, addr2 } = await loadFixture(deployFixture);
 
             await contract.addToAddrList([addr1.address, addr2.address]);
-            await contract.removeFromAddrList([addr1.address, addr2.address]);
+            expect(await contract.removeFromAddrList([addr1.address, addr2.address]))
+                .to.emit(contract, "RemoveFromAddrList").withArgs(addr1.address)
+                .to.emit(contract, "RemoveFromAddrList").withArgs(addr2.address);
             expect((await contract.inAddrList(addr1.address))).to.equal(false);
             expect((await contract.inAddrList(addr2.address))).to.equal(false);
         });

@@ -26,6 +26,7 @@ contract AddressList is IAddressList, AccessControlDefaultAdminRulesUpgradeable,
     // Events
     event AddToAddrList(address indexed addr);
     event RemoveFromAddrList(address indexed addr);
+    event UpdateContractDetailsSet();
 
     // Errors
     error ZeroAddress();
@@ -43,17 +44,17 @@ contract AddressList is IAddressList, AccessControlDefaultAdminRulesUpgradeable,
      * @param name_ name of contract
      * @param description_ description of the contract
      * @param admin address of the default admin
-     * @param assetProtector address of the asset protector
+     * @param addrListUpdater address of the addr list maintainer
      */
     function initialize(
         string memory name_,
         string memory description_,
         address admin,
-        address assetProtector
+        address addrListUpdater
     ) external initializer {
 
         // admin role is checked by OZ's AccessControlDefaultAdminRules
-        if (assetProtector == address(0)) {
+        if (addrListUpdater == address(0)) {
             revert ZeroAddress();
         }
 
@@ -62,7 +63,7 @@ contract AddressList is IAddressList, AccessControlDefaultAdminRulesUpgradeable,
         __AccessControlDefaultAdminRules_init(3 hours, admin);
         __UUPSUpgradeable_init();
 
-        _grantRole(ADDR_LIST_UPDATE_ROLE, assetProtector);
+        _grantRole(ADDR_LIST_UPDATE_ROLE, addrListUpdater);
     }
 
     /**
@@ -160,6 +161,7 @@ contract AddressList is IAddressList, AccessControlDefaultAdminRulesUpgradeable,
 
         name = name_;
         description = description_;
+        emit UpdateContractDetailsSet();
     }
 
 }
