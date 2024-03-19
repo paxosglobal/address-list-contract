@@ -7,7 +7,7 @@ import { ethers, upgrades } from "hardhat";
 const CONTRACT_NAME = "AddressListV1"
 
 const roles = {
-    ASSET_PROTECTION_ROLE: keccak256(toUtf8Bytes("ASSET_PROTECTION_ROLE"))
+    ADDR_LIST_UPDATE_ROLE: keccak256(toUtf8Bytes("ADDR_LIST_UPDATE_ROLE"))
 }
 
 describe("AddressListV1 testing", function () {
@@ -151,7 +151,7 @@ describe("AddressListV1 testing", function () {
 
             await expect((contract.connect(admin) as Contract).addToAddrList([addr1.address])).to.be.revertedWith(
                 `AccessControl: account ${admin.address.toLowerCase()} is missing role ${
-                    roles.ASSET_PROTECTION_ROLE
+                    roles.ADDR_LIST_UPDATE_ROLE
                   }`
             );
         });
@@ -161,7 +161,7 @@ describe("AddressListV1 testing", function () {
 
             await expect((contract.connect(admin) as Contract).removeFromAddrList([addr1.address])).to.be.revertedWith(
                 `AccessControl: account ${admin.address.toLowerCase()} is missing role ${
-                    roles.ASSET_PROTECTION_ROLE
+                    roles.ADDR_LIST_UPDATE_ROLE
                   }`
             );
         });

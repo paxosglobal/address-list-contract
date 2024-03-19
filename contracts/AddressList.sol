@@ -20,8 +20,8 @@ contract AddressList is IAddressList, AccessControlDefaultAdminRulesUpgradeable,
     uint256[23] private __gap_AddressList; // solhint-disable-line var-name-mixedcase
     // DATA ENDS
 
-    // keccak256("ASSET_PROTECTION_ROLE")
-    bytes32 public constant ASSET_PROTECTION_ROLE = 0xe3e4f9d7569515307c0cdec302af069a93c9e33f325269bac70e6e22465a9796;
+    // keccak256("ADDR_LIST_UPDATE_ROLE")
+    bytes32 public constant ADDR_LIST_UPDATE_ROLE = 0x0723b03415002f06422f98c2d569ea0040321d014ea2d3686ab39551941dcade;
 
     // Events
     event AddToAddrList(address indexed addr);
@@ -62,7 +62,7 @@ contract AddressList is IAddressList, AccessControlDefaultAdminRulesUpgradeable,
         __AccessControlDefaultAdminRules_init(3 hours, admin);
         __UUPSUpgradeable_init();
 
-        _grantRole(ASSET_PROTECTION_ROLE, assetProtector);
+        _grantRole(ADDR_LIST_UPDATE_ROLE, assetProtector);
     }
 
     /**
@@ -83,7 +83,7 @@ contract AddressList is IAddressList, AccessControlDefaultAdminRulesUpgradeable,
      */
     function addToAddrList(
         address[] calldata toAddAddresses
-    ) external onlyRole(ASSET_PROTECTION_ROLE) {
+    ) external onlyRole(ADDR_LIST_UPDATE_ROLE) {
         for (uint i = 0; i < toAddAddresses.length;) {
             _addrList[toAddAddresses[i]] = true;
             emit AddToAddrList(toAddAddresses[i]);
@@ -97,7 +97,7 @@ contract AddressList is IAddressList, AccessControlDefaultAdminRulesUpgradeable,
      */
     function removeFromAddrList(
         address[] calldata toRemoveAddresses
-    ) external onlyRole(ASSET_PROTECTION_ROLE) {
+    ) external onlyRole(ADDR_LIST_UPDATE_ROLE) {
         for (uint i = 0; i < toRemoveAddresses.length;) {
             delete _addrList[toRemoveAddresses[i]];
             emit RemoveFromAddrList(toRemoveAddresses[i]);
