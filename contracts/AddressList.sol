@@ -4,6 +4,7 @@ pragma solidity 0.8.17;
 import {AccessControlDefaultAdminRulesUpgradeable} from "@openzeppelin/contracts-upgradeable/access/AccessControlDefaultAdminRulesUpgradeable.sol";
 import {UUPSUpgradeable} from "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 import {IAddressList} from "./IAddressList.sol";
+
 /**
  * @title AddressList: Manage a list of addresses.
  */
@@ -14,7 +15,7 @@ contract AddressList is IAddressList, AccessControlDefaultAdminRulesUpgradeable,
     // Contract usage details.
     string public description;
     // Mapping of address to membership status.
-    mapping(address => bool) internal addrList;
+    mapping(address => bool) internal _addrList;
     // Storage GAP
     uint256[23] private __gap_AddressList; // solhint-disable-line var-name-mixedcase
     // DATA ENDS
@@ -23,8 +24,8 @@ contract AddressList is IAddressList, AccessControlDefaultAdminRulesUpgradeable,
     bytes32 public constant ASSET_PROTECTION_ROLE = 0xe3e4f9d7569515307c0cdec302af069a93c9e33f325269bac70e6e22465a9796;
 
     // Events
-    event AddToAddrList(address indexed _addr);
-    event RemoveFromAddrList(address indexed _addr);
+    event AddToAddrList(address indexed addr);
+    event RemoveFromAddrList(address indexed addr);
 
     // Errors
     error ZeroAddress();
@@ -56,23 +57,24 @@ contract AddressList is IAddressList, AccessControlDefaultAdminRulesUpgradeable,
             revert ZeroAddress();
         }
 
-        if (bytes(name_).length == 0) {
-            revert InvalidName();
-        }
-        if (bytes(description_).length == 0) {
-            revert InvalidDescription();
-        }
-
-
-        name = name_;
-        description = description_;
-
-
+        _updateContractDetails(name_, description_);
 
         __AccessControlDefaultAdminRules_init(3 hours, admin);
         __UUPSUpgradeable_init();
 
         _grantRole(ASSET_PROTECTION_ROLE, assetProtector);
+    }
+
+    /**
+     * @notice Update contract's details.
+     * @param name_ name of contract
+     * @param description_ description of the contract
+     */
+    function updateContractDetails(
+        string memory name_,
+        string memory description_
+    ) external onlyRole(DEFAULT_ADMIN_ROLE) {
+        _updateContractDetails(name_, description_);
     }
 
     /**
@@ -83,7 +85,7 @@ contract AddressList is IAddressList, AccessControlDefaultAdminRulesUpgradeable,
         address[] calldata toAddAddresses
     ) external onlyRole(ASSET_PROTECTION_ROLE) {
         for (uint i = 0; i < toAddAddresses.length;) {
-            addrList[toAddAddresses[i]] = true;
+            _addrList[toAddAddresses[i]] = true;
             emit AddToAddrList(toAddAddresses[i]);
             unchecked { ++i; }
         }
@@ -97,7 +99,7 @@ contract AddressList is IAddressList, AccessControlDefaultAdminRulesUpgradeable,
         address[] calldata toRemoveAddresses
     ) external onlyRole(ASSET_PROTECTION_ROLE) {
         for (uint i = 0; i < toRemoveAddresses.length;) {
-            delete addrList[toRemoveAddresses[i]];
+            delete _addrList[toRemoveAddresses[i]];
             emit RemoveFromAddrList(toRemoveAddresses[i]);
             unchecked { ++i; }
         }
@@ -111,14 +113,16 @@ contract AddressList is IAddressList, AccessControlDefaultAdminRulesUpgradeable,
     function inAddrList(
         address addr
     ) public view returns (bool) {
-        return addrList[addr];
+        return _addrList[addr];
     }
 
     /**
      * @notice Are any given address in list.
      * @param addresses address[] This is the list of addresses to check if any of them is part of list.
      */
-    function anyAddrInList(address[] calldata addresses) external view returns (bool) {
+    function isAnyAddrInList(
+        address[] calldata addresses
+    ) external view returns (bool) {
         for (uint256 i = 0; i < addresses.length;) {
             if (inAddrList(addresses[i])) {
                 return true;
@@ -135,5 +139,27 @@ contract AddressList is IAddressList, AccessControlDefaultAdminRulesUpgradeable,
     function _authorizeUpgrade(
         address
     ) internal override onlyRole(DEFAULT_ADMIN_ROLE) {} // solhint-disable-line no-empty-blocks
+
+
+    /**
+     * @dev internal function to update contract's name and description.
+     * @param name_ name of contract
+     * @param description_ description of the contract
+     */
+    function _updateContractDetails(
+        string memory name_,
+        string memory description_
+    ) private {
+        if (bytes(name_).length == 0) {
+            revert InvalidName();
+        }
+
+        if (bytes(description_).length == 0) {
+            revert InvalidDescription();
+        }
+
+        name = name_;
+        description = description_;
+    }
 
 }
