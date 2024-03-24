@@ -11,7 +11,8 @@
     "coverage": "npx hardhat coverage",
     "flatten": "npx hardhat flatten contracts/AddressListV1.sol > ./flattened/AddressListV1.sol",
     "solhint": "solhint 'contracts/**/*.sol'",
-    "test": "npx hardhat test"
+    "test": "npx hardhat test",
+    "coverage": "npx hardhat coverage"
   },
   "author": "PAXOS",
   "license": "MIT",

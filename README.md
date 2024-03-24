@@ -57,10 +57,10 @@ To install packages:
 
 To compile the contract run:
 
-`npx hardhat compile`
+`npm run compile`
 
 To run unit tests:
 
-`npx hardhat test`
+`npm run test`
 
 You can also run `npx hardhat coverage` to see a coverage report.
