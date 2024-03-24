@@ -1,11 +1,11 @@
 {
-  "name": "access-registry-contract",
+  "name": "address-list-contract",
   "version": "1.0.0",
-  "description": "Oracle Smart contract to provide allow/block list",
+  "description": "Smart contract which stores a list of Addresses.",
   "main": "index.js",
   "scripts": {
-    "generate-abi": "cat artifacts/contracts/PaxosSanctionedListV1.sol | jq -c .abi > contract.abi",
-    "generate-bin": "cat artifacts/contracts/PaxosSanctionedListV1.sol | jq  -r .bytecode > contract.bin",
+    "generate-abi": "cat artifacts/contracts/PaxosSanctionedListV1.sol | jq -c .abi > AddressList.abi",
+    "generate-bin": "cat artifacts/contracts/PaxosSanctionedListV1.sol | jq  -r .bytecode > AddressList.bin",
     "compile": "npx hardhat compile --force",
     "coverage": "npx hardhat coverage",
     "flatten-impl": "npx hardhat flatten contracts/PaxosSanctionedListV1.sol > ./flattened/PaxosSanctionedListV1.sol",
