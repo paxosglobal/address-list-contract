@@ -4,11 +4,12 @@
   "description": "Smart contract which stores a list of Addresses.",
   "main": "index.js",
   "scripts": {
-    "generate-abi": "cat artifacts/contracts/PaxosSanctionedListV1.sol | jq -c .abi > AddressList.abi",
-    "generate-bin": "cat artifacts/contracts/PaxosSanctionedListV1.sol | jq  -r .bytecode > AddressList.bin",
+    "clean": "npx hardhat clean",
+    "generate-abi": "cat artifacts/contracts/AddressListV1.sol/AddressListV1.json | jq -c .abi > AddressList.abi",
+    "generate-bin": "cat artifacts/contracts/AddressListV1.sol.AddressListV1.json | jq  -r .bytecode > AddressList.bin",
     "compile": "npx hardhat compile --force",
     "coverage": "npx hardhat coverage",
-    "flatten-impl": "npx hardhat flatten contracts/PaxosSanctionedListV1.sol > ./flattened/PaxosSanctionedListV1.sol",
+    "flatten": "npx hardhat flatten contracts/AddressListV1.sol > ./flattened/AddressListV1.sol",
     "solhint": "solhint 'contracts/**/*.sol'",
     "test": "npx hardhat test"
   },
