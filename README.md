@@ -25,7 +25,7 @@ The contract supports two distinct roles:
 
 | Role                   | Role-hash                                                            |
 | ---------------------- | ---------------------------------------------------------------------|
-| DEFAULT_ADMIN_ROLE     | 0x0000000000000000000000000000000000000000                           |
+| DEFAULT_ADMIN_ROLE     | 0x0000000000000000000000000000000000000000000000000000000000000000   |
 | ADDR_LIST_UPDATE_ROLE  | 0x0723b03415002f06422f98c2d569ea0040321d014ea2d3686ab39551941dcade   |
 
 ### ABI, Address, and Verification
