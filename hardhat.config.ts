@@ -40,8 +40,9 @@ const config: HardhatUserConfig = {
       ...(PRIVATE_KEY ? { accounts: [PRIVATE_KEY] } : {}),
     },
     polygonAmoy: {
-      url: "https://amoy-mumbai.infura.io/v3/" + INFURA_API_KEY,
+      url: "https://polygon-amoy.infura.io/v3/" + INFURA_API_KEY,
       ...(PRIVATE_KEY ? { accounts: [PRIVATE_KEY] } : {}),
+      gasPrice: 50000000000,
     },
   },
   gasReporter: {
