@@ -1,4 +1,5 @@
 const { ethers, upgrades } = require("hardhat");
+import { getImplementationAddress } from '@openzeppelin/upgrades-core';
 
 const { ADMIN_ADDRESS, ASSET_PROTECTOR, NAME, DESCRIPTION } = process.env;
 
@@ -28,7 +29,8 @@ async function main() {
 
   await contract.waitForDeployment();
 
-  console.log('contract proxy address: %s',contract.target);
+  console.log('Contract proxy address: %s',contract.target);
+  console.log('Implementation address: %s',await getImplementationAddress(ethers.provider, contract.target))
 }
 
 main()

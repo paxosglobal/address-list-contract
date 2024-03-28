@@ -4,7 +4,7 @@ This repository hosts a Solidity smart contract designed to manage a list of add
 
 ## Key Features
 
-The smart contract allows storage of a list of addresses on-chain, which can be accessed and utilized by other smart contracts through delegate calls.
+The smart contract allows storage of a list of addresses on-chain, which can be accessed and utilized by other smart contracts.
 
 ### Interface for the Address List Smart Contract
 
@@ -20,7 +20,7 @@ interface IAddressList {
 The contract supports two distinct roles:
 
 1. `DEFAULT_ADMIN_ROLE`: The default admin role, which has administrative privileges.
-2. `ADDR_LIST_UPDATE_ROLE`: Allows the role owner to update the address list, allowing it to add/remove addressed from the list.
+2. `ADDR_LIST_UPDATE_ROLE`: Allows the role to update the address list, allowing it to add/remove addresses from the list.
 
 
 | Role                   | Role-hash                                                            |

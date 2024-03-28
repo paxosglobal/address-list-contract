@@ -1,6 +1,7 @@
 import { HardhatUserConfig } from 'hardhat/config';
 import '@nomicfoundation/hardhat-toolbox';
 import '@nomicfoundation/hardhat-chai-matchers';
+import "@nomicfoundation/hardhat-verify";
 import '@openzeppelin/hardhat-upgrades';
 import "@nomiclabs/hardhat-solhint";
 import 'solidity-coverage';
@@ -11,8 +12,8 @@ dotenv.config();
 
 const {
   PRIVATE_KEY,
-  INFURA_API_KEY,
-  ETHERSCAN_API_KEY
+  NETWORK_URL,
+  CHAINSCAN_API_KEY
 } = process.env;
 
 const config: HardhatUserConfig = {
@@ -27,29 +28,32 @@ const config: HardhatUserConfig = {
   },
   defaultNetwork: 'hardhat',
   networks: {
+    ethMain: {
+      url: NETWORK_URL,
+      ...(PRIVATE_KEY ? { accounts: [PRIVATE_KEY] } : {}),
+    },
     ethSepolia: {
-      url: "https://sepolia.infura.io/v3/" + INFURA_API_KEY,
+      url: NETWORK_URL,
       ...(PRIVATE_KEY ? { accounts: [PRIVATE_KEY] } : {}),
     },
     polygonMain: {
-      url: "https://polygon-mainnet.infura.io/v3/" + INFURA_API_KEY,
+      url: NETWORK_URL,
       ...(PRIVATE_KEY ? { accounts: [PRIVATE_KEY] } : {}),
     },
     polygonMumbai: {
-      url: "https://polygon-mumbai.infura.io/v3/" + INFURA_API_KEY,
+      url: NETWORK_URL,
       ...(PRIVATE_KEY ? { accounts: [PRIVATE_KEY] } : {}),
     },
     polygonAmoy: {
-      url: "https://polygon-amoy.infura.io/v3/" + INFURA_API_KEY,
+      url: NETWORK_URL,
       ...(PRIVATE_KEY ? { accounts: [PRIVATE_KEY] } : {}),
-      gasPrice: 50000000000,
     },
   },
   gasReporter: {
     enabled: (process.env.GAS_REPORTER) ? true : false
   },
   etherscan: {
-    apiKey: ETHERSCAN_API_KEY,
+    apiKey: CHAINSCAN_API_KEY,
   },
 };
 
