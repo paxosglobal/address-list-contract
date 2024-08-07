@@ -3605,7 +3605,7 @@ abstract contract UUPSUpgradeable is Initializable, IERC1822ProxiableUpgradeable
 // File contracts/IAddressList.sol
 
 // Original license: SPDX_License_Identifier: MIT
-pragma solidity 0.8.17;
+pragma solidity ^0.8.17;
 
 /**
  * @title IAddressList: Interface for AddressList contract.
@@ -3620,7 +3620,7 @@ interface IAddressList {
 // File contracts/AddressList.sol
 
 // Original license: SPDX_License_Identifier: MIT
-pragma solidity 0.8.17;
+pragma solidity ^0.8.17;
 
 
 
@@ -3789,7 +3789,7 @@ contract AddressList is IAddressList, AccessControlDefaultAdminRulesUpgradeable,
 // File contracts/AddressListV1.sol
 
 // Original license: SPDX_License_Identifier: MIT
-pragma solidity 0.8.17;
+pragma solidity ^0.8.17;
 
 /**
  * @title AddressListV1: Version V1 implementation of the AddressList contract. 
